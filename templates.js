@@ -10,6 +10,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   const parse=document.getElementById('parse');
   if(parse){parse.style.width='100%';parse.style.flex='1 1 100%';}
 
+  const reportName=document.getElementById('rn');
+  const reportInput=document.getElementById('ri');
+  if(reportName){
+    if(reportName.value.trim()==='Báo cáo Kho-HCXL')reportName.value='';
+    reportName.placeholder='Nhập tên báo cáo';
+  }
+  if(reportInput){
+    const sampleText=reportInput.value.trim();
+    if(sampleText.startsWith('Báo cáo Kho-HCXL'))reportInput.value='';
+    reportInput.placeholder='Dán danh sách mã cửa hàng đã hoàn thành vào đây';
+  }
+  try{
+    const saved=JSON.parse(localStorage.getItem('leader_ops_v3')||'{}');
+    if(saved.reportName==='Báo cáo Kho-HCXL'){
+      saved.reportName='';
+      saved.reportDone=[];
+      localStorage.setItem('leader_ops_v3',JSON.stringify(saved));
+    }
+  }catch(e){}
+
   const panel=document.getElementById('reminder');
   const msg=document.getElementById('msg');
   const copy=document.getElementById('copy');
