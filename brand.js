@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{document.title='Leader Ops Hub';const h=document.querySelector('header h1');if(h)h.textContent='LEADER OPS HUB';});
