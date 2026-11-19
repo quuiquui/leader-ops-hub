@@ -5,28 +5,53 @@ window.downloadPO=function(){const rows=[['PO','Mã CH','Tên CH','Mã hàng','T
 window.downloadSchedule=function(){const rows=[['Mã SAP','Tên cửa hàng','MNV','CHT/CHP đứng chính','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật']];TEMPLATE_STORES.forEach(([sap,name])=>rows.push([sap,name,'','','','','','','','','']));exportTemplate(rows,'Mau_Lich_Lam_Viec_18_CH.xlsx','LỊCH LÀM VIỆC',[10,32,14,24,12,12,12,12,12,12,12]);};
 
 document.addEventListener('DOMContentLoaded',()=>{
+  const sample=document.getElementById('sample');
+  if(sample)sample.remove();
+  const parse=document.getElementById('parse');
+  if(parse){parse.style.width='100%';parse.style.flex='1 1 100%';}
+
   const panel=document.getElementById('reminder');
   const msg=document.getElementById('msg');
   const copy=document.getElementById('copy');
   if(!panel||!msg||!copy)return;
-  const cards=panel.querySelector('.stores');
+
   const form=document.createElement('div');
   form.className='card';
-  form.innerHTML='<h2>Tên nhắc nhở trên Zalo</h2><p class="help">Nhập tiêu đề muốn hiển thị ở đầu nội dung gửi nhóm.</p><input id="zaloTitle" value=""><div id="copyStatus" style="display:none;margin-top:10px;padding:10px 12px;border-radius:9px;background:#dcfce7;color:#166534;font-weight:700">✅ Đã sao chép nội dung nhắc nhở vào bộ nhớ tạm.</div>';
+  form.innerHTML='<h2>Tên nhắc nhở trên Zalo</h2><p class="help">Nhập tiêu đề muốn hiển thị ở đầu nội dung gửi nhóm.</p><input id="zaloTitle" value="">';
   panel.insertBefore(form,panel.firstChild);
+
+  const status=document.createElement('div');
+  status.id='copyStatus';
+  status.setAttribute('role','status');
+  status.setAttribute('aria-live','polite');
+  status.style.cssText='display:none;margin:12px 0 0;padding:12px 14px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:800;text-align:center;border:1px solid #86efac';
+  copy.parentElement.parentElement.appendChild(status);
+
+  const toast=document.createElement('div');
+  toast.id='copyToast';
+  toast.style.cssText='display:none;position:fixed;right:22px;bottom:22px;z-index:9999;background:#166534;color:white;padding:13px 18px;border-radius:10px;font-weight:800;box-shadow:0 8px 28px rgba(0,0,0,.25)';
+  toast.textContent='✅ Sao chép thành công!';
+  document.body.appendChild(toast);
+
   const title=document.getElementById('zaloTitle');
-  const status=document.getElementById('copyStatus');
   title.value=localStorage.getItem('leader_ops_zalo_title')||'NHẮC HOÀN THÀNH CÔNG VIỆC';
-  function applyTitle(){
-    const current=msg.textContent||'';
-    const lines=current.split('\n');
-    if(lines.length){lines[0]='📢 '+(title.value.trim()||'NHẮC HOÀN THÀNH CÔNG VIỆC');const next=lines.join('\n');if(next!==current)msg.textContent=next;}
-  }
+  function applyTitle(){const current=msg.textContent||'';const lines=current.split('\n');if(lines.length){lines[0]='📢 '+(title.value.trim()||'NHẮC HOÀN THÀNH CÔNG VIỆC');const next=lines.join('\n');if(next!==current)msg.textContent=next;}}
   title.addEventListener('input',()=>{localStorage.setItem('leader_ops_zalo_title',title.value);applyTitle();status.style.display='none';});
-  const observer=new MutationObserver(applyTitle);observer.observe(msg,{childList:true,characterData:true,subtree:true});applyTitle();
+  new MutationObserver(applyTitle).observe(msg,{childList:true,characterData:true,subtree:true});
+  applyTitle();
+
   copy.onclick=async()=>{
     applyTitle();
-    try{await navigator.clipboard.writeText(msg.textContent);status.textContent='✅ Đã sao chép nội dung nhắc nhở vào bộ nhớ tạm.';status.style.display='block';copy.textContent='Đã sao chép';setTimeout(()=>{copy.textContent='Sao chép tin nhắn';status.style.display='none';},3000);}
-    catch(e){status.textContent='⚠️ Không thể sao chép tự động. Hãy chọn và sao chép nội dung bên dưới.';status.style.background='#fff7ed';status.style.color='#9a3412';status.style.display='block';}
+    try{
+      await navigator.clipboard.writeText(msg.textContent);
+      status.textContent='✅ ĐÃ SAO CHÉP THÀNH CÔNG. Bạn có thể dán nội dung vào Zalo.';
+      status.style.display='block';
+      toast.style.display='block';
+      copy.textContent='✅ Đã sao chép';
+      setTimeout(()=>{copy.textContent='Sao chép tin nhắn';toast.style.display='none';},3000);
+    }catch(e){
+      status.textContent='⚠️ Không thể sao chép tự động. Hãy chọn và sao chép nội dung bên dưới.';
+      status.style.background='#fff7ed';status.style.color='#9a3412';status.style.borderColor='#fdba74';status.style.display='block';
+    }
   };
 });
